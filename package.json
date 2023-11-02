@@ -1,0 +1,8 @@
+{
+    "name": "nodejs-socket",
+    "version": "0.0.1",
+    "description": "Sample communication from an HTML document to a Node.js server using Socket.io.",
+    "dependencies": {
+      "socket.io": "^2.0.4"
+    }
+}

@@ -1,52 +1,54 @@
-const express = require("express");
-const formidable = require('formidable');
-const fs = require('fs');
+const express = require('express');
+const app = express();
+const http = require('http');
+const server = http.createServer(app);
+const io = require("socket.io")(server, {
+    cors: {
+        methods: ["GET", "POST"],
+        transports: ['websocket', 'polling'],
+        credentials: true
+    },
+    allowEIO3: true
+});;
 
-const app = express()
 
 
-
-app.get("/file",  (req, res)=>{
-    console.log("connected");
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write('<form action="fileupload" method="post" enctype="multipart/form-data">');
-    res.write('<input type="file" name="filetoupload" multiple><br>');
-    res.write('<input type="submit">');
-    res.write('</form>');
-    return res.end();
+app.get("/", (req, res)=>{
+    res.sendFile(__dirname + '/index.html');
 });
 
-app.post("/fileupload", (req, res)=>{
-    var form = new formidable.IncomingForm();
-    form.parse(req, async function (err, fields, files) {
-        if(files.filetoupload == undefined){
-            res.write("file not uploaded");
-            res.end();
-        }
+
+io.on('connection', (socket) => {
+    console.log('a user connected', socket.client.id);
+    socket.on('disconnect', () => {
+      console.log('user disconnected');
+    });
+    socket.on('song data', (msg)=>{
         
-        for(let i = 0; i < files.filetoupload.length; i++){
-            
-            let oldpath = files.filetoupload[i].filepath;
-            
-            fs.readFile(oldpath, async function (err, data) {
-                if (err) throw err;
-                console.log('File read!');
-                let newpath = '/sdcard/Download/' + files.filetoupload[i].originalFilename;
-
-                // Write the file
-                fs.writeFile(newpath, data, function (err) {
-                    if (err) throw err;
-
-                    console.log('File written!');
-                });
-            });;
-        }
-        res.write('File uploaded and moved!');
-        res.end();
+        // console.log("sending song info");
+        console.log(msg);
+        io.emit("song", msg);
+    });
+    socket.on("play", (msg)=>{
+        io.emit("play song", "please");
+    });
+    socket.on("pause", (msg)=>{
+        io.emit("pause song", "please");
+    });
+    socket.on("next", (msg)=>{
+        io.emit("next song", "please");
+    });
+    socket.on("previous", (msg)=>{
+        io.emit("previous song", "please");
+    });
+    socket.on("connect_error", (err) => {
+        console.log(`connect_error due to ${err.message}`);
     });
 });
 
 
-app.listen(3000, ()=>{
-    console.log("started listening at 3000");
+
+server.listen(3000, ()=>{
+    console.log("Listening on port: 3000");
 });
+
