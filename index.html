@@ -104,6 +104,8 @@
 
       .prog {
         padding: 10px 0;
+        width: 100%;
+
       }
       .prog-time {
         padding: 3px 5px;
@@ -132,6 +134,8 @@
         border-radius: 25px;
       }
 
+      
+
       .buttons {
         margin: 2rem 0;
         list-style: none;
@@ -155,8 +159,6 @@
         height: 2rem;
         opacity: 0.75;
       }
-      
-
       .button-md {
         width: 2.5rem;
         height: 2.5rem;
@@ -170,6 +172,11 @@
         width: 3.25rem;
         height: 3.25rem;
         box-shadow: inset 6px 6px 12px #c8c8c8, inset -6px -6px 12px #ffffff;
+      }
+
+      .mute{
+        width: 2.25rem;
+        height: 2.25rem;
       }
 
       .bar {
@@ -523,7 +530,7 @@
         width:100%;
         background-color: rgb(0, 0, 0);
         z-index: 1;
-        
+        visibility: hidden;
       }
       .meswin{
         position: relative;
@@ -540,6 +547,7 @@
         align-items: center;
         justify-content: center;
       }
+      
       
     </style>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
@@ -563,21 +571,27 @@
         </a>
       </div>
       <!--  header  -->
-      <img src="" alt="album art" class="art" id="thumbnail" /><!--  art  -->
+      <img src="" alt="album art" class="art" id="thumbnail"/>
+      
       <div class="info">
         <h1 id="title">The Beatles</h1>
         <p id="artist">Elanor Rigby</p>
       </div>
       <!--  info  -->
-      <div class="prog">
-        <div class="prog-time">
-          <p class="left" id="pg">0:00</p>
-          <p class="right" id="duration">2:06</p>
+      <ul class="buttons">
+        <div class="prog">
+          <div class="prog-time">
+            <p class="left" id="pg">0:00</p>
+            <p class="right" id="duration">2:06</p>
+          </div>
+          <div class="prog-bar" id="progress-bar">
+            <div class="prog-bar-inner" id="prog-inner"></div>
+          </div>
         </div>
-        <div class="prog-bar" id="progress-bar">
-          <div class="prog-bar-inner" id="prog-inner"></div>
-        </div>
-      </div>
+        <a class="button mute" id="muteBut">
+          <i class='fas fa-volume-up'></i>
+        </a>
+      </ul>
       <!--  progress  -->
       <ul class="buttons">
         <a class="button button-sm">
@@ -611,6 +625,8 @@
           <span class="sr-only">Repeat Song</span>
         </a>
       </ul>
+      
+      
       <!--  buttons  -->
       <div class="bar"></div>
       <!--  bar  -->
@@ -644,6 +660,7 @@
       let blockscreen = document.getElementById("blockscreen");
       let nextButton = document.getElementById("next");
       let preButton = document.getElementById("previous");
+      let muteButton = document.getElementById("muteBut");
       let socket = io();
 
 
@@ -656,10 +673,21 @@
         let cur = mes.curmill;
         let total = mes.durmill;
         let percent = Math.round((cur / total) * 100);
-        // prgInner.style.width = 50
         (mes.playing)?playPause.classList.add("active"):playPause.classList.remove("active");
         prgInner.style.width = `${percent}%`;
-
+        
+        if(song.isVol != undefined){
+          if(!song.isVol){
+            muteButton.getElementsByTagName('i')[0].classList.remove("fa-volume-up");
+            muteButton.getElementsByTagName('i')[0].classList.add("fa-volume-mute");
+            
+          }
+          else{
+            muteButton.getElementsByTagName('i')[0].classList.remove("fa-volume-mute");
+            muteButton.getElementsByTagName('i')[0].classList.add("fa-volume-up");
+            
+          }
+        }
 
         blockscreen.style.visibility = "hidden";
       });
@@ -679,6 +707,20 @@
       });
       preButton.addEventListener('click', (e)=>{
         socket.emit("previous", "please");
+      });
+
+      muteButton.addEventListener("click", (e)=>{
+        let vol = muteButton.getElementsByTagName("i")[0].classList.contains("fa-volume-up")
+        if(vol){
+          muteButton.getElementsByTagName('i')[0].classList.remove("fa-volume-up");
+          muteButton.getElementsByTagName('i')[0].classList.add("fa-volume-mute");
+          socket.emit("mute");
+        }
+        else{
+          muteButton.getElementsByTagName('i')[0].classList.remove("fa-volume-mute");
+          muteButton.getElementsByTagName('i')[0].classList.add("fa-volume-up");
+          socket.emit("unmute");
+        }
       });
       
     </script>
