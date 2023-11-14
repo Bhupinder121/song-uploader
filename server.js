@@ -6,7 +6,7 @@ const { exec } = require("child_process");
 
 let isVol = undefined;
 
-function setVolume(vol){
+function connectToPhone(mycallback){
     exec(`adb connect 192.168.1.100`, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
@@ -14,21 +14,16 @@ function setVolume(vol){
         }
         if (stderr) {
             console.log(`stderr: ${stderr}`);
-            exec(`adb -s 192.168.1.100:5555 shell media volume --set ${vol}`, (error, stdout, stderr) => {
-                if (error) {
-                    console.log(`error: ${error.message}`);
-                    return;
-                }
-                if (stderr) {
-                    console.log(`stderr: ${stderr}`);
-                    return;
-                }
-                console.log(`stdout: ${stdout}`);
-                isVol = vol > 0;
-            });
-            return;
+
+            return mycallback();
         }
-        console.log(`stderr: ${stderr}`);
+        console.log(`stdout ${stdout}`);
+        return mycallback();
+    });
+}
+
+function setVolume(vol){
+    connectToPhone(()=>{
         exec(`adb -s 192.168.1.100:5555 shell media volume --set ${vol}`, (error, stdout, stderr) => {
             if (error) {
                 console.log(`error: ${error.message}`);
@@ -42,21 +37,26 @@ function setVolume(vol){
             isVol = vol > 0;
         });
     });
+    
+    
 }
 
 function getVolume(){
-    exec(`adb -s 192.168.1.100:5555 shell media volume --get`, (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            console.log(`stderr: ${stderr.split("\n")[2].split(" ")[3]}`);
-            return;
-        }
-        let vol = +stdout.split("\n")[2].split(" ")[3]
-        isVol = vol > 0;
+    connectToPhone(()=>{
+        exec(`adb -s 192.168.1.100:5555 shell media volume --get`, (error, stdout, stderr) => {
+            if (error) {
+                console.log(`error: ${error.message}`);
+                return;
+            }
+            if (stderr) {
+                console.log(`stderr: ${stderr.split("\n")[2].split(" ")[3]}`);
+                return;
+            }
+            let vol = +stdout.split("\n")[2].split(" ")[3]
+            isVol = vol > 0;
+        });
     });
+   
 }
 
 getVolume();
@@ -85,6 +85,7 @@ io.on('connection', (socket) => {
     socket.on('song data', (msg)=>{
         
         console.log("sending song info");
+        // resizeImage(msg.thumbnail);
         // console.log(msg);
         msg.isVol = isVol; 
         io.emit("song", msg);
