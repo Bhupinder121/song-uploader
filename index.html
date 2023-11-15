@@ -671,8 +671,8 @@
         (mes.playing)?playPause.classList.add("active"):playPause.classList.remove("active");
         prgInner.style.width = `${percent}%`;
         
-        if(song.isVol != undefined){
-          if(!song.isVol){
+        if(mes.isVol != undefined){
+          if(!mes.isVol){
             muteButton.getElementsByTagName('i')[0].classList.remove("fa-volume-up");
             muteButton.getElementsByTagName('i')[0].classList.add("fa-volume-mute");
             
