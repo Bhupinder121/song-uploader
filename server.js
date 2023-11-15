@@ -3,6 +3,15 @@ const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const { exec } = require("child_process");
+const io = require("socket.io")(server, {
+    cors: {
+        methods: ["GET", "POST"],
+        transports: ['websocket', 'polling'],
+        credentials: true
+    },
+    allowEIO3: true
+});
+
 
 let isVol = undefined;
 
@@ -61,14 +70,7 @@ function getVolume(){
 
 getVolume();
 
-const io = require("socket.io")(server, {
-    cors: {
-        methods: ["GET", "POST"],
-        transports: ['websocket', 'polling'],
-        credentials: true
-    },
-    allowEIO3: true
-});;
+
 
 
 
@@ -76,6 +78,13 @@ app.get("/", (req, res)=>{
     res.sendFile(__dirname + '/index.html');
 });
 
+setInterval(()=>{
+    console.log(new Date().getMinutes())
+    if(new Date().getHours() == 5){
+        let alarm = "Alarm Clock Sound Effect Ringtone (Analog)";
+        io.emit("song request", alarm);
+    }
+}, 1000 * 60 * 60);
 
 io.on('connection', (socket) => {
     console.log('a user connected', socket.client.id);
@@ -83,10 +92,16 @@ io.on('connection', (socket) => {
       console.log('user disconnected');
     });
     socket.on('song data', (msg)=>{
+<<<<<<< Updated upstream
         
         console.log("sending song info");
         // console.log(msg);
         msg.isVol = isVol; 
+=======
+        msg.thumbnail = msg.thumbnail.split("=")[0] + "=w175-h175-l90-rj"
+        // console.log("sending song info");
+        msg.isVol = isVol;
+>>>>>>> Stashed changes
         io.emit("song", msg);
     });
     socket.on("play", (msg)=>{
@@ -101,6 +116,10 @@ io.on('connection', (socket) => {
     socket.on("previous", (msg)=>{
         io.emit("previous song", "please");
     });
+    socket.on("web request", (song)=>{
+        console.log("song sended");
+        io.emit("song request", song);
+    });
     socket.on("mute", (mes)=>{
         setVolume(0);
     });
@@ -110,6 +129,8 @@ io.on('connection', (socket) => {
     socket.on("connect_error", (err) => {
         console.log(`connect_error due to ${err.message}`);
     });
+
+   
 });
 
 
