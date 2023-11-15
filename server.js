@@ -92,16 +92,9 @@ io.on('connection', (socket) => {
       console.log('user disconnected');
     });
     socket.on('song data', (msg)=>{
-<<<<<<< Updated upstream
-        
-        console.log("sending song info");
-        // console.log(msg);
-        msg.isVol = isVol; 
-=======
         msg.thumbnail = msg.thumbnail.split("=")[0] + "=w175-h175-l90-rj"
         // console.log("sending song info");
         msg.isVol = isVol;
->>>>>>> Stashed changes
         io.emit("song", msg);
     });
     socket.on("play", (msg)=>{
